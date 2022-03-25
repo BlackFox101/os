@@ -4,14 +4,17 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <iomanip>
 
 using namespace std;
 
+const int INDENT = 10;
+
 struct Element
 {
-    int group;  // A, B, C
-    int condition; // S1, S2
-    int out; // Y1, Y2
+    int group;      // A, B, C
+    int condition;  // S1, S2
+    int out;        // Y1, Y2
 };
 
 using Machine = vector<vector<Element>>;
@@ -25,10 +28,10 @@ EquivalenceMatrix GetEquivalenceMatrix(const Machine& machine, const vector<int>
 
     for (int i = 1; i < groupIndexes.size(); i++)
     {
-        bool isDifferentGroup = false;
+        bool isDifferentGroup = true;
         auto it = matrix.begin();
 
-        while (it != matrix.end() && !isDifferentGroup)
+        while (it != matrix.end() && isDifferentGroup)
         {
             isDifferentGroup = false;
             for (int j = 0; j < machine.size(); j++)
@@ -46,8 +49,7 @@ EquivalenceMatrix GetEquivalenceMatrix(const Machine& machine, const vector<int>
 
         if (isDifferentGroup)
         {
-            group++;
-            matrix[group].push_back(groupIndexes[i]);
+            matrix[++group].push_back(groupIndexes[i]);
         }
         else
         {
@@ -66,7 +68,7 @@ void UpdateMachine(Machine& machine, EquivalenceMatrix& equivalenceMatrix)
         {
             auto it = equivalenceMatrix.begin();
 
-            while (std::find((it->second).begin(), (it->second).end(), machine[i][j].condition) == (it->second).end())
+            while (find((it->second).begin(), (it->second).end(), machine[i][j].condition) == (it->second).end())
             {
                 it++;
             }
@@ -85,37 +87,109 @@ bool Minimization(Machine& machine, EquivalenceMatrix& equivalenceMatrix)
     for (auto& item : tempMatrix)
     {
         auto tempEquivalenceMatrix = GetEquivalenceMatrix(machine, item.second);
-        for (auto& equivalence : tempEquivalenceMatrix)
+        for (auto equivalence : tempEquivalenceMatrix)
         {
             equivalenceMatrix[i] = equivalence.second;
             i++;
         }
     }
-    
+
     UpdateMachine(machine, equivalenceMatrix);
 
     return initialNumberOfGroups == equivalenceMatrix.size();
 }
 
-void WriteMilli(const Machine& machine, ostream& output)
+struct Result
 {
+    Machine resultMachine;
+    vector<int> resultIndexes;
+};
 
+Result GetResult(Machine& machine, EquivalenceMatrix& equivalenceMatrix)
+{
+    vector<int> resultIndexes;
+    Machine resultMachine(machine.size(), vector<Element>(equivalenceMatrix.size()));
+    auto it = equivalenceMatrix.begin();
+
+    for (int i = 0; i < resultMachine[0].size(); i++)
+    {
+        for (int j = 0; j < resultMachine.size(); j++)
+        {
+            resultMachine[j][i] = machine[j][it->second[0]];
+
+            auto n = equivalenceMatrix.begin();
+            while (find((n->second).begin(), (n->second).end(), machine[j][it->second[0]].condition) == (n->second).end())
+            {
+                n++;
+            }
+            resultMachine[j][i].condition = n->second[0];
+        }
+        resultIndexes.push_back(it->second[0]);
+        it++;
+    }
+
+    return { resultMachine, resultIndexes };
 }
 
-void WriteMurra(const Machine& machine, ostream& output)
+void WriteMilli(const Result& result, ostream& output)
 {
+    auto machine = result.resultMachine;
+    auto indexes = result.resultIndexes;
+    for (int i = 0; i < indexes.size(); i++)
+    {
+        output << setw(INDENT) << "S" + to_string(indexes[i] + 1);
+    }
+    output << endl;           
 
+    for (int i = 0; i < machine.size(); i++)
+    {
+        output << "X" << i + 1;
+        for (int j = 0; j < machine[0].size(); j++)
+        {
+            output << setw(INDENT) << right << "[S" + to_string(machine[i][j].condition + 1) + ", Y" + to_string(machine[i][j].out + 1) + "]";
+        }
+        output << endl;
+    }
 }
 
-void WriteMachine(Machine& machine, const string& type, ostream& output)
+void WriteMurra(const Result& result, ostream& output)
 {
+    auto machine = result.resultMachine;
+    auto indexes = result.resultIndexes;
+    for (int i = 0; i < indexes.size(); i++)
+    {
+        output << setw(INDENT) << "Y" + to_string(machine[0][i].out + 1);
+    }
+    output << endl;
+
+    for (int i = 0; i < indexes.size(); i++)
+    {
+        output << setw(INDENT) << "S" + to_string(indexes[i] + 1);
+    }
+    output << endl;
+
+    for (int i = 0; i < machine.size(); i++)
+    {
+        output << "X" << i + 1;
+        for (int j = 0; j < machine[0].size(); j++)
+        {
+            string out = "[S" + to_string(machine[i][j].condition + 1) + "]";
+            output << setw(INDENT) << right << out;
+        }
+        output << endl;
+    }
+}
+
+void WriteMachine(Machine& machine, EquivalenceMatrix& equivalenceMatrix, const string& type, ostream& output)
+{
+    auto result = GetResult(machine, equivalenceMatrix);
     if (type == "Mi")
     {
-        WriteMilli(machine, output);
+        WriteMilli(result, output);
     }
     else
     {
-        WriteMurra(machine, output);
+        WriteMurra(result, output);
     }
 }
 
@@ -218,9 +292,10 @@ int main()
     {
         equivalenceMatrix[0].push_back(i);
     }
-    while (!Minimization(machine, equivalenceMatrix)){}
+
+    while (!Minimization(machine, equivalenceMatrix)) {}
 
     ofstream output;
     output.open("output.txt");
-    WriteMachine(machine, type, cout);
+    WriteMachine(machine, equivalenceMatrix, type, output);
 }

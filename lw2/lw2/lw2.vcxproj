@@ -140,7 +140,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="lw2.cpp" />
-    <ClCompile Include="temo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="input.txt" />
