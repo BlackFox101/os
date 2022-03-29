@@ -1,0 +1,51 @@
+#include <fstream>
+#include "TokenStorage.h"
+
+using namespace std;
+
+class MyClass final
+{
+public:
+    MyClass()
+    {
+        if (true)
+        {
+        }
+        else
+        {
+        }
+
+        float temp;
+    };
+
+    virtual void Function() = 0;
+
+protected:
+
+    int Temp()
+    {
+        int i = 0;
+        while (i <= 5)
+        {
+            i++;
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+
+        }
+
+        // comment
+        return 1 || 2 && 3 * 5 / 1;
+    }
+private:
+
+    int m_identifier;
+};
+
+
+int main()
+{
+    ifstream input("input.txt");
+    //ofstream output("output.txt");
+}
