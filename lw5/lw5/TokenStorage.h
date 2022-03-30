@@ -1,13 +1,11 @@
 #pragma once
 #include <map>
 #include <string>
-#include <fstream>
-#include <optional>
 
 class TokenStorage
 {
-	const string IDENTIFIER = "IDENTIFIER";
-	const string NUMBER = "NUMBER";
+	//const string IDENTIFIER = "IDENTIFIER";
+	//const string NUMBER = "NUMBER";
 
 public:
 	using Token = std::string;
@@ -94,25 +92,33 @@ public:
 		m_tokens["&&"] = "AND";
 		m_tokens["/*"] = "OPEN_BLOCK_COMMENT";
 		m_tokens["*/"] = "CLOSE_BLOCK_COMMENT";
+		m_tokens["<"] = "SIGN_LESS";
+		m_tokens[">"] = "SIGN_MORE";
 	}
 
-	Info GetTokenData(Token token)
+	Info GetTokenData(const Token& token) const 
 	{
 		auto TokenIt = m_tokens.find(token);
 		if (TokenIt != m_tokens.end())
 		{
 			return TokenIt->second;
 		}
-		else if (isNumber(token))
+		
+		if (isNumber(token))
 		{
-			return NUMBER;
+			return "NUMBER";
 		}
 
-		return IDENTIFIER;
+		if (token[0] == '"' && token[token.length() - 1] == '"')
+		{
+			return "STRING";
+		}
+
+		return "IDENTIFIER";
 	}
 
 private:
-	bool isNumber(Token token)
+	bool isNumber(Token token) const 
 	{
 		for (auto ch : token)
 		{

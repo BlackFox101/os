@@ -6,7 +6,7 @@ using namespace std;
 class MyClass final
 {
 public:
-    MyClass(int a, int b)
+    MyClass()
     {
         if (true)
         {
@@ -39,7 +39,7 @@ protected:
         }
 
         // comment
-        return 1 || 2 && 3 * 5 / 1; int c = 5;
+        return 1 || 2 && 3 * 5 / 1;
     }
 private:
 
