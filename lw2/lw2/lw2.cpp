@@ -278,17 +278,17 @@ void ReadMachine(Machine& machine, const string& type, istream& input)
 int main()
 {
     ifstream input;
-    input.open("input.txt");
+    input.open("input4.txt");
 
     string type;
-    int x, y, r;
-    input >> type >> x >> y >> r;
+    int x, y;
+    input >> type >> x >> y;
 
     Machine machine(y, vector<Element>(x));
     ReadMachine(machine, type, input);
 
     EquivalenceMatrix equivalenceMatrix;
-    for (int i = 0; i < machine[0].size(); i++)
+    for (int i = 0; i < x; i++)
     {
         equivalenceMatrix[0].push_back(i);
     }

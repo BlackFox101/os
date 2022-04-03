@@ -1,0 +1,6 @@
+Mr
+5
+2
+Y2 Y1 Y2 Y1 Y2
+q3 q2 q1 q4 q5
+q5 q3 q3 q2 q1

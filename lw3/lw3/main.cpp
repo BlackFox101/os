@@ -20,6 +20,7 @@ struct Machine
     using To = string;
     using From = string;
     using Transition = char;
+
     using PathsOfTo = map<Transition, set<To>>;
     using Cells = map<From, PathsOfTo>;
 
