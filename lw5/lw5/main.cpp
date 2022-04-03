@@ -28,6 +28,8 @@ int main()
     string line;
     size_t stringCounter = 0;
 
+    // TODO можно заменить на состояния например enum
+    // std variant
     bool isBlockComment = false;      // /*
 
     while (getline(input, line))
@@ -131,7 +133,6 @@ int main()
                 break;
             }
         }
-
         stringCounter++;
     }
 }

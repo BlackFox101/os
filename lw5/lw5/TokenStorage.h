@@ -4,9 +4,6 @@
 
 class TokenStorage
 {
-	//const string IDENTIFIER = "IDENTIFIER";
-	//const string NUMBER = "NUMBER";
-
 public:
 	using Token = std::string;
 	using Info = std::string;
@@ -118,19 +115,10 @@ public:
 	}
 
 private:
-	bool isNumber(Token token) const 
+	bool isNumber(Token token) const
 	{
-		for (auto ch : token)
-		{
-			if (!isdigit(ch))
-			{
-				return false;
-			}
-		}
-
-		return true;
+		return isdigit(token[0]);
 	}
-
 
 	std::map<Token, Info> m_tokens;
 };
