@@ -1,4 +1,5 @@
 #include "ReadRegex.h"
+#include <iostream>
 
 using namespace std;
 
@@ -104,9 +105,65 @@ vector<string> ConvertConcatenation(const string& regex)
     return transitions;
 }
 
-// Параллельные
-vector<string> ConvertUnion(const string& regex)
+void ClearExtraBrackets(string& transition)
 {
+    if (transition == "")
+    {
+        return;
+    }
+
+    if (transition[0] == '(' && transition[transition.size() - 1] == ')')
+    {
+        using Nesting = size_t;
+        Nesting nesting = 0;
+        pair<char, Nesting> prevBracket = { transition[0], nesting++ };
+        bool clear = true;
+        for (size_t i = 1; i < transition.size(); i++)
+        {
+            char ch = transition[i];
+            if (ch == '(')
+            {
+                if (prevBracket.first == ')' && prevBracket.second == 1 && nesting == 0)
+                {
+                    clear = false;
+                    break;
+                }
+                prevBracket = { ch, nesting++ };
+            }
+            else if (ch == ')')
+            {
+                prevBracket = { ch, nesting-- };
+            }
+        }
+
+        if (clear)
+        {
+            transition = transition.substr(1, transition.size() - 2);
+            if (transition[0] == '(' && transition[transition.size() - 1] == ')')
+            {
+                ClearExtraBrackets(transition);
+            }
+        }
+    }
+}
+
+void AddUnion(vector<string>& transitions, const string& transition)
+{
+    string newtransition = transition;
+    ClearExtraBrackets(newtransition);
+
+    if (newtransition == "")
+    {
+        return;
+    }
+
+    transitions.push_back(newtransition);
+}
+
+// Параллельные
+vector<string> ConvertUnion(string regex)
+{
+    ClearExtraBrackets(regex);
     vector<string> transitions;
 
     size_t openParenthesis = 0;
@@ -141,7 +198,7 @@ vector<string> ConvertUnion(const string& regex)
             {
                 break;
             }
-            transitions.push_back(transition);
+            AddUnion(transitions, transition);
             transition = "";
             break;
         default:
@@ -154,10 +211,54 @@ vector<string> ConvertUnion(const string& regex)
         }
     }
 
-    if (transition != "")
-    {
-        transitions.push_back(transition);
-    }
+    AddUnion(transitions, transition);
 
     return transitions;
+}
+
+void DeleteSpecialChar(std::string& regex)
+{
+    if (regex[regex.size() - 1] != '+' && regex[regex.size() - 1] != '*')
+    {
+        return;
+    }
+
+    if (regex.size() == 1)
+    {
+        regex = "";
+    }
+
+    if (regex.size() == 2)
+    {
+        regex.pop_back();
+        return;
+    }
+    
+    if (regex[0] != '(' && regex[regex.size() - 2] != ')')
+    {
+        return;
+    }
+
+    using Nesting = size_t;
+    Nesting nesting = 0;
+    pair<char, Nesting> prevBracket = { regex[0], nesting++ };
+    for (size_t i = 1; i < regex.size(); i++)
+    {
+        char ch = regex[i];
+        if (ch == '(')
+        {
+            if (prevBracket.first == ')' && prevBracket.second == 1 && nesting == 0)
+            {
+                return;
+            }
+            prevBracket = { ch, nesting++ };
+        }
+        else if (ch == ')')
+        {
+            prevBracket = { ch, nesting-- };
+        }
+    }
+
+    regex.pop_back();
+    ClearExtraBrackets(regex);
 }

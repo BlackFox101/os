@@ -18,11 +18,15 @@ public:
     };
 
 private:
+    void ConvertPlus(Path path);
+    void ConvertMultiplication(Path path);
     // Добавить параллельные переходы
-    void AddParallelTransitions(size_t currentPathIndex, std::vector<std::string> parallelTransitions);
+    void AddParallelTransitions(const Path& currentPath, std::vector<std::string> parallelTransitions);
     // Добавить последовательные переходы
-    void AddConsecutiveTransitions(size_t currentPathIndex, std::vector<std::string> consecutiveTransitions);
-    bool SplitTransitions();
+    void AddConsecutiveTransitions(const Path& currentPath, std::vector<std::string> consecutiveTransitions);
+    void DeletePath(const Path& path);
+
+    void SplitTransitions();
 
     size_t m_stateCounter = 0;
     std::vector<Path> m_paths;
