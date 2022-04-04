@@ -8,7 +8,7 @@
 
 using namespace std;
 
-/*TEST_CASE("AddTransition")
+TEST_CASE("AddTransition")
 {
 	WHEN("a + b")
 	{
@@ -404,20 +404,6 @@ TEST_CASE("DeleteSpecialChar")
 		THEN("a+b")
 		{
 			CHECK(regex == "a+b");
-		}
-	}
-}*/
-
-TEST_CASE("GetMachine")
-{
-	const string regex = "(xy*|ab|(x|a*))(x|y*)";
-
-	RegexMachine machine(regex);
-	WHEN("")
-	{
-		THEN("")
-		{
-
 		}
 	}
 }

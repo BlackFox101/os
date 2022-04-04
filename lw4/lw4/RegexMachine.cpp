@@ -1,16 +1,16 @@
 #include "RegexMachine.h"
 #include "ReadRegex.h"
 
-RegexMachine::RegexMachine(const std::string& regex)
+#include <iostream>
+
+using namespace std;
+
+RegexMachine::RegexMachine(const string& regex)
 {
 	m_paths.push_back({ m_stateCounter , ++m_stateCounter, regex });
 
 	SplitTransitions();
-}
-
-size_t RegexMachine::size() const
-{
-	return m_paths.size();
+	ClearEmptyTransitions();
 }
 
 void RegexMachine::SplitTransitions()
@@ -49,7 +49,7 @@ void RegexMachine::SplitTransitions()
 	} while (initialPaths != m_paths.size());
 }
 
-void RegexMachine::AddConsecutiveTransitions(const Path& currentPath, std::vector<std::string> consecutiveTransitions)
+void RegexMachine::AddConsecutiveTransitions(const Path& currentPath, vector<string> consecutiveTransitions)
 {
 	size_t from = currentPath.from;
 	size_t to = currentPath.to;
@@ -74,7 +74,7 @@ void RegexMachine::AddConsecutiveTransitions(const Path& currentPath, std::vecto
 	m_paths.insert(m_paths.end(), newPaths.begin(), newPaths.end());
 }
 
-void RegexMachine::AddParallelTransitions(const Path& currentPath, std::vector<std::string> parallelTransitions)
+void RegexMachine::AddParallelTransitions(const Path& currentPath, vector<string> parallelTransitions)
 {
 	size_t from = currentPath.from;
 	size_t to = currentPath.to;
@@ -116,7 +116,7 @@ void RegexMachine::ConvertPlus(Path path)
 
 	m_paths.push_back({ from, ++m_stateCounter, transition });
 	m_paths.push_back({ m_stateCounter, m_stateCounter, transition });
-	m_paths.push_back({ m_stateCounter, to, std::string(1, EMPTY_TRANSITION_SYMBOL) });
+	m_paths.push_back({ m_stateCounter, to, string(1, EMPTY_TRANSITION_SYMBOL) });
 }
 
 void RegexMachine::ConvertMultiplication(Path path)
@@ -134,4 +134,116 @@ void RegexMachine::ConvertMultiplication(Path path)
 	m_paths.push_back({ from, ++m_stateCounter, std::string(1, EMPTY_TRANSITION_SYMBOL) });
 	m_paths.push_back({ m_stateCounter, m_stateCounter, transition });
 	m_paths.push_back({ m_stateCounter, to, std::string(1, EMPTY_TRANSITION_SYMBOL) });
+}
+
+void RegexMachine::ClearEmptyTransitions()
+{
+	const size_t FIRST_CLOSED_STATE = 0;
+	size_t stateCounter = 0;
+	
+	vector<State> newStates;
+	queue<State> statesQueue;
+	statesQueue.push({ stateCounter, {FIRST_CLOSED_STATE}, {FIRST_CLOSED_STATE} });
+
+	while (!statesQueue.empty())
+	{
+		auto state = statesQueue.front();
+		statesQueue.pop();
+
+		map<string, set<size_t>> closedStatesTransitions;
+		queue<State::ClosedState> closedStates(deque<State::ClosedState>(state.closedStates.begin(), state.closedStates.end()));
+		set<State::ClosedState> visitedClosedStates = state.closedStates;
+
+		while (!closedStates.empty())
+		{
+			auto closedState = closedStates.front();
+			closedStates.pop();
+
+			for (auto& path : m_paths)
+			{
+				if (path.from != closedState)
+				{
+					continue;
+				}
+
+				if (path.transition == string(1, EMPTY_TRANSITION_SYMBOL))
+				{
+					if (visitedClosedStates.find(path.to) == visitedClosedStates.end())
+					{
+						closedStates.push(path.to);
+						visitedClosedStates.insert(path.to);
+					}
+					continue;
+				}
+				closedStatesTransitions[path.transition].insert(path.to);
+			}
+		}
+		state.closedStates = visitedClosedStates;
+		for (auto transition : closedStatesTransitions)
+		{
+			optional<State> newState = GetStateIfAlreadyExist(statesQueue, newStates, state, transition.second);
+			if (!newState)
+			{
+				newState = { ++stateCounter, transition.second, transition.second };
+				statesQueue.push(*newState);
+			}
+			state.transitions[transition.first] = (*newState).index;
+		}
+		newStates.push_back(state);
+	}
+	
+	m_paths.clear();
+	for (auto state : newStates)
+	{
+		for (auto transition : state.transitions)
+		{
+			m_paths.push_back({ state.index, transition.second, transition.first });
+		}
+	}
+}
+
+optional<RegexMachine::State> RegexMachine::GetStateIfAlreadyExist(queue<State> statesQueue, const vector<State>& states, const State& currentState, const set<size_t>& closedStates)
+{
+	if (currentState.initialClosedStates == closedStates)
+	{
+		return currentState;
+	}
+
+	while (!statesQueue.empty())
+	{
+		auto state = statesQueue.front();
+		statesQueue.pop();
+
+		if (state.initialClosedStates == closedStates)
+		{
+			return state;
+		}
+	}
+
+	for (auto state : states)
+	{
+		if (state.initialClosedStates == closedStates)
+		{
+			return state;
+		}
+	}
+
+	return nullopt;
+}
+
+std::vector<RegexMachine::Path> RegexMachine::GetPaths()
+{
+	return m_paths;
+}
+
+Machine::Cells RegexMachine::GetPathsInMapFormat()
+{
+	Machine::Cells cells;
+
+	for (const auto& path : m_paths)
+	{
+		cells[to_string(path.from)][path.transition.at(0)].insert(to_string(path.to));
+	}
+
+	return cells;
 }
