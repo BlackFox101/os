@@ -23,16 +23,23 @@ void RegexMachine::SplitTransitions()
 		for (auto& path : paths)
 		{
 			auto consecutiveTransitions = ConvertConcatenation(path.transition);
-			AddConsecutiveTransitions(path, consecutiveTransitions);
+			if (consecutiveTransitions.size() > 1)
+			{
+				AddConsecutiveTransitions(path, consecutiveTransitions);
+			}
 		}
 
 		paths = m_paths;
 		for (auto path : paths)
 		{
 			auto parallelTransitions = ConvertUnion(path.transition);
-			AddParallelTransitions(path, parallelTransitions);
+			if (parallelTransitions.size() > 1)
+			{
+				AddParallelTransitions(path, parallelTransitions);
+			}
 		}
 
+		paths = m_paths;
 		for (auto path : paths)
 		{
 			auto transition = path.transition;
