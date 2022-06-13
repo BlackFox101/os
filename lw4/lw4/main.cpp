@@ -18,5 +18,5 @@ int main()
     Determinization(machine);
 
     ofstream output("output.txt");
-    WriteMachine(std::cout, machine);
+    WriteMachine(output, machine);
 }

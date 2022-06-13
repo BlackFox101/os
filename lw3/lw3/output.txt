@@ -1,6 +1,3 @@
-S -> 0AH | 1B
-AH -> 0AS | 1B
-B -> 0H | 1BH
-AS -> 0AHS | 1B
-BH -> 0H | 1BH
-AHS -> 0AHS | 1B
+H -> bS | cA
+S -> cA
+A -> aA | bS

@@ -278,7 +278,7 @@ void ReadMachine(Machine& machine, const string& type, istream& input)
 int main()
 {
     ifstream input;
-    input.open("input4.txt");
+    input.open("input.txt");
 
     string type;
     int x, y;
